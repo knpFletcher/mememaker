@@ -10,10 +10,12 @@ import com.teamtreehouse.mememaker.models.Meme;
 import com.teamtreehouse.mememaker.models.MemeAnnotation;
 
 import java.util.ArrayList;
+import java.util.Date;
 
 /**
  * Created by Evan Anger on 8/17/14.
  */
+//expose data objects to model objects
 public class MemeDataSource {
 
     private Context mContext;
@@ -33,6 +35,21 @@ public class MemeDataSource {
         database.close();
     }
 
+    public void delete(int memeId){
+        SQLiteDatabase database = open();
+        database.beginTransaction();
+        //implementation details
+        //delete annotations 1st, because requires foreign key of meme
+        database.delete(MemeSQLiteHelper.ANNOTATIONS_TABLE,
+                String.format("%s=%s", MemeSQLiteHelper.COLUMN_FOREIGN_KEY_MEME, String.valueOf(memeId)),
+                        null);
+        database.delete(MemeSQLiteHelper.MEMES_TABLE,
+                String.format("%s=%s", BaseColumns._ID, String.valueOf(memeId)),
+                null);
+        database.setTransactionSuccessful();
+        database.endTransaction();
+    }
+
     public ArrayList<Meme> read() {
         ArrayList<Meme> memes = readMemes();
         addMemeAnnotations(memes);
@@ -49,7 +66,8 @@ public class MemeDataSource {
                 null, //selection args
                 null, //group by
                 null, //having
-                null); //order
+                MemeSQLiteHelper.COLUMN_MEME_CREATE_DATE + "DESC"); //order (by date in this case, newer memes are at top)
+        //access resulting set of data to read
 
         ArrayList<Meme> memes = new ArrayList<Meme>();
         if(cursor.moveToFirst()) {
@@ -92,6 +110,39 @@ public class MemeDataSource {
         database.close();
     }
 
+    public void update(Meme meme){
+        SQLiteDatabase database = open();
+        database.beginTransaction();
+        ContentValues updateMemeValues = new ContentValues();
+        updateMemeValues.put(MemeSQLiteHelper.COLUMN_MEME_NAME, meme.getName());
+        database.update(MemeSQLiteHelper.MEMES_TABLE,
+                updateMemeValues,
+                String.format("%s=%d", BaseColumns._ID , meme.getId()), null);
+                    //where clause
+                        //string, number
+        for (MemeAnnotation annotation : meme.getAnnotations()){
+            ContentValues updateAnnotations = new ContentValues();
+            updateAnnotations.put(MemeSQLiteHelper.COLUMN_ANNOTATION_TITLE, annotation.getTitle());
+            updateAnnotations.put(MemeSQLiteHelper.COLUMN_ANNOTATION_X, annotation.getLocationX());
+            updateAnnotations.put(MemeSQLiteHelper.COLUMN_ANNOTATION_Y, annotation.getLocationY());
+            updateAnnotations.put(MemeSQLiteHelper.COLUMN_FOREIGN_KEY_MEME, meme.getId());
+            updateAnnotations.put(MemeSQLiteHelper.COLUMN_ANNOTATION_COLOR, annotation.getColor());
+
+            if (annotation.hasBeenSaved()){
+                database.update(MemeSQLiteHelper.ANNOTATIONS_TABLE,
+                        updateAnnotations,
+                        String.format("%s=%d", BaseColumns._ID, annotation.getId()),
+                        null);
+            } else{
+                database.insert(MemeSQLiteHelper.ANNOTATIONS_TABLE, null, updateAnnotations);
+                    //creates new meme if it doesn't already exist
+            }
+        }
+        database.setTransactionSuccessful();
+        database.endTransaction();
+        close(database);
+    }
+
     private int getIntFromColumnName(Cursor cursor, String columnName) {
         int columnIndex = cursor.getColumnIndex(columnName);
         return cursor.getInt(columnIndex);
@@ -106,9 +157,11 @@ public class MemeDataSource {
         SQLiteDatabase database = open();
         database.beginTransaction();
 
+        //implementation details
         ContentValues memeValues = new ContentValues();
         memeValues.put(MemeSQLiteHelper.COLUMN_MEME_NAME, meme.getName());
         memeValues.put(MemeSQLiteHelper.COLUMN_MEME_ASSET, meme.getAssetLocation());
+        memeValues.put(MemeSQLiteHelper.COLUMN_MEME_CREATE_DATE, new Date().getTime());
         long memeID = database.insert(MemeSQLiteHelper.MEMES_TABLE, null, memeValues);
 
         for (MemeAnnotation annotation : meme.getAnnotations()) {

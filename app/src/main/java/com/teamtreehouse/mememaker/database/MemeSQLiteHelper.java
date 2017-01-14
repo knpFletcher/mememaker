@@ -11,16 +11,20 @@ import android.provider.BaseColumns;
 public class MemeSQLiteHelper extends SQLiteOpenHelper  {
 
     private static final String DB_NAME = "memes.db";
-    private static final int DB_VERSION = 1;
+    private static final int DB_VERSION = 2;
     //Meme Table functionality
     public static final String MEMES_TABLE = "MEMES";
     public static final String COLUMN_MEME_ASSET = "ASSET";
     public static final String COLUMN_MEME_NAME = "NAME";
+    public static final String COLUMN_MEME_CREATE_DATE = "CREATE_DATE";
     private static String CREATE_MEMES =
     "CREATE TABLE " + MEMES_TABLE + "("
             + BaseColumns._ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
+                //BaseColumns._ID is basically just _id, ensures use of _id as primary key,
+                //and sets value with autoincrement
             COLUMN_MEME_ASSET +" TEXT," +
-            COLUMN_MEME_NAME + " TEXT)";
+            COLUMN_MEME_NAME + " TEXT," +
+            COLUMN_MEME_CREATE_DATE + " INTEGER)";
 
     //Meme Table Annotations functionality
     public static final String ANNOTATIONS_TABLE = "ANNOTATIONS";
@@ -38,6 +42,9 @@ public class MemeSQLiteHelper extends SQLiteOpenHelper  {
             COLUMN_FOREIGN_KEY_MEME + " INTEGER, " +
             "FOREIGN KEY(" + COLUMN_FOREIGN_KEY_MEME + ") REFERENCES MEMES(_ID))";
 
+    private static final String ALTER_ADD_CREATE_DATE = "ALTER TABLE" + MEMES_TABLE +
+            " ADD COLUMN" + COLUMN_MEME_CREATE_DATE + " INTEGER";
+
     public MemeSQLiteHelper(Context context) {
         super(context, DB_NAME, null, DB_VERSION);
     }
@@ -49,7 +56,11 @@ public class MemeSQLiteHelper extends SQLiteOpenHelper  {
     }
 
     @Override
-    public void onUpgrade(SQLiteDatabase sqLiteDatabase, int i, int i2) {
-
+    public void onUpgrade(SQLiteDatabase sqLiteDatabase, int oldVersion, int newVersion) {
+        switch(oldVersion){
+            case 1:
+                //sql to execute
+                sqLiteDatabase.execSQL(ALTER_ADD_CREATE_DATE);
+        }
     }
 }

@@ -25,5 +25,7 @@ public class MemeMakerApplicationSettings {
                 .edit()
                 .putString("Storage", storageType)
                 .apply();
+                    //async, works on separate thread
+
     }
 }

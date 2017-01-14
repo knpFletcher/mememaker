@@ -5,8 +5,6 @@ import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Environment;
-import android.text.TextUtils;
-import android.util.Log;
 
 import com.teamtreehouse.mememaker.MemeMakerApplicationSettings;
 
@@ -39,10 +37,12 @@ public class FileUtilities {
         }
     }
 
+    //gets directory to write files to
     public static File getFileDirectory(Context context) {
         MemeMakerApplicationSettings settings = new MemeMakerApplicationSettings(context);
         String storageType = settings.getStoragePreference();
         if(storageType.equals(StorageType.INTERNAL)) {
+            //only use this storage if type is set to internal
             return context.getFilesDir();
         } else {
             if(isExternalStorageAvailable()) {
@@ -52,13 +52,16 @@ public class FileUtilities {
                     return Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
                 }
             } else {
+                //if external storage isn't available, default to internal
                 return context.getFilesDir();
             }
         }
     }
 
+    //check external storage exists before writing to it
     public static boolean isExternalStorageAvailable() {
         String state = Environment.getExternalStorageState();
+            //environment is state of storage
         if(Environment.MEDIA_MOUNTED.equals(state)) {
             return true;
         }
@@ -68,6 +71,7 @@ public class FileUtilities {
     private static void copyFile(InputStream in, OutputStream out) throws IOException {
         byte[] buffer = new byte[1024];
         int read;
+        //run until there's nothing left to read
         while((read = in.read(buffer)) != -1){
             out.write(buffer, 0, read);
         }
@@ -79,8 +83,10 @@ public class FileUtilities {
             @Override
             public boolean accept(File file) {
                 if(file.getAbsolutePath().contains(".jpg")) {
+                        //filter file with .jpg extension
                     return true;
                 } else {
+                    //otherwise ignore it
                     return false;
                 }
             }

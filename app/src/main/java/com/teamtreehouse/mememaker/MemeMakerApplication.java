@@ -1,6 +1,5 @@
 package com.teamtreehouse.mememaker;
 
-import android.preference.Preference;
 import android.preference.PreferenceManager;
 
 import com.teamtreehouse.mememaker.utils.FileUtilities;
@@ -18,5 +17,6 @@ public class MemeMakerApplication extends android.app.Application {
         FileUtilities.saveAssetImage(this, "guiltypup.jpg");
 
         PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
+            //false ensures settings modified by user aren't modified
     }
 }

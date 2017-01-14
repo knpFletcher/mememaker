@@ -14,5 +14,6 @@ public class MemeSettingsFragment extends PreferenceFragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         addPreferencesFromResource(R.xml.preferences);
+            //set default values prior to use
     }
 }

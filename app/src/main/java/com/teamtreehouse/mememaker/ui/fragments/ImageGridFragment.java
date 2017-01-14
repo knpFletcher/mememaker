@@ -28,7 +28,7 @@ import com.teamtreehouse.mememaker.utils.FileUtilities;
 import java.io.File;
 import java.util.ArrayList;
 
-
+//reads jpeg images in internal storage, shows in grid format
 public class ImageGridFragment extends Fragment {
 
     private GridView mGridView;
@@ -70,6 +70,8 @@ public class ImageGridFragment extends Fragment {
     private ArrayList extractFiles() {
         final ArrayList imageItems = new ArrayList();
         File [] filteredFiles = FileUtilities.listFiles(this.getActivity());
+
+        //iterate through each array object and create model object
         for(File filteredFile : filteredFiles) {
             Bitmap bitmap = BitmapFactory.decodeFile(filteredFile.getAbsolutePath());
             ImageGridItem item = new ImageGridItem(bitmap, filteredFile.getName(), filteredFile.getAbsolutePath());
